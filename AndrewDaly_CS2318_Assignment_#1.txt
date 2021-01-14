@@ -1,0 +1,58 @@
+# Andrew Daly -- 06/10/2020
+# AndrewDaly_CS2318_Assignment_1.txt -- A text file which contains my answers
+# to Dr. Tamir's assignment 1
+#
+# Translate the following MIPS pseudo instructions into "real" MIPS instructions.
+# That is, show the mapping of the pseudo instructions to MIPS instructions
+# that correspond to machine code.
+#
+# Registers used:
+# 	Rs  - used to hold the first number.
+# 	Rt  - used to hold the second number.
+#	Rd  - destination register
+#	$0  - always zero
+# 	$at - temporary register
+#	$t1 and $2 - temporary registers only for section 6
+
+# 1 - ble   Rs, Rt, Label
+
+	slt	$at, Rt, Rs	# if Rt < $s, then $at = 1, else $at = 0
+	beq	$at, $0, label	# compares $at and $0 for equal values. If true, branches to Label
+label:
+
+# 2 - abs   Rd, Rs
+
+	addu	Rd, $0, Rs	# Rd = $0 + Rs
+	bgez	Rs, positive	# branches to positive if greater than or equal to zero
+	sub	Rd, $0, $s	# Rd = $0 - Rs
+positive:
+
+# 3 - slei Rd, Rs, Constant
+
+	ori	Rd, $0, 1	# Rd = $0 | 1
+	ori	at, $0, const	# $at = $0 | const
+	slt	$at, $at, Rs	# if $at < Rs, then $at = 1, else $at = 0
+	beq	$at, $0, done	# compares $at and $0 for equal values. If true, branches to done
+	ori	Rd, $0, 0	# Rd = $0 | 0
+done:
+
+# 4 - bgeo Rs, Label
+
+	ori	Rt, $0, 1	# Rt = $0 | 1
+	slt	$at, Rt, Rs	# if Rt < Rs, then $at = 1, else $at = 0
+	bne	$at, $0, label	# comapres $at and $0 for non-equal values. If true, branches to label
+	beq	Rs, Rt, label	# compares Rs and Rt for equal values. If true, branches to label
+label:
+
+# 5 - swapr Rs, Rt
+
+	addi	Rd, Rs, 0	# Rd = Rs + 0
+	addi	Rs, Rt, 0	# Rs = Rt + 0
+	addi	Rt, Rd, 0	# Rt = Rd + 0
+
+# 6 - swapm (Rs), (Rt)
+
+	lw	$t1, (Rs)	# Memory location of Rs to $t1
+	lw	$t2, (Rt)	# Memory location of Rt to $t2
+	sw	$t2, (Rs)	# $t2 now stores memory location of Rs
+	sw	$t1, (Rt)	# $t1 now stores memory location of Rt
