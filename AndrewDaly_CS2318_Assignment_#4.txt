@@ -1,0 +1,163 @@
+#	Program Name: Assignment #4
+#	Programmer: Andrew Daly
+#	Date last modified: 06/30/2020
+#	Functional Description:
+#	A program to print out recursive exponential function
+#####################################################################	
+#	C++ Pseudocode description of algorithm
+# # include<iostream>
+#   using namespace std;
+#   int factorial(int);
+#   int main() {
+# 	int a, b, result;
+# 	cout << "Enter a number between 1 and 21:";
+# 	cin >> a;
+#	cout << "Enter a number between 1 and 7:
+#	cin >> b;
+# 	result = rexp(a,b);
+# 	cout << "The value of rexp(" << a << "," << b << ") is: " << result;
+# 	return 0; }
+#
+# 	int rexp(int a, int b) {
+# 		if (b > 1)
+#			return a * rexp(a,b-1);
+# 		else
+#			return a;
+#	}
+#####################################################################
+#	Main program
+#####################################################################
+		.data
+promptA:	.asciiz 	"Enter a number between 1 and 21 : "
+promptB: 	.asciiz 	"Enter a number between 1 and 7 : "
+error:		.asciiz		"ERROR! Your input is out of bound!"
+part1:	 	.asciiz 	"Output of rexp("
+comma:		.asciiz		","
+part2:		.asciiz		") is : "
+
+			.text
+main:
+		addi	$t0, $zero, 22	   # $t0 = 22 (Bound checking for A)
+
+   		li 	$v0, 4 		   # system call code for Print String
+   		la 	$a0, promptA 	   # load address of promptA into $a0
+   		syscall
+			
+			# read A			
+
+   		li 	$v0, 5 		   # system call code for Read Integer
+   		syscall			   # reads the value of A into $v0
+
+			# check that A is in range of 1 to 21
+
+		slt	$t1, $v0, $t0	   # $t1 = ($v0 < $t0) if (a < 22) $t1 = 1
+		beq	$t1, $zero, err	   # if $t1 = 0, go to error
+		blez	$v0, err	   # if ($v0 <= 0), go to error
+
+			# if A passed the test, continue
+
+   		move	$t1, $v0 	   # move the value of $v0 into $t1
+
+   		li 	$v0, 4 		   # system call code for Print String
+   		la 	$a0, promptB 	   # load address of promptB into $a0
+   		syscall
+
+			# read B
+
+   		li 	$v0, 5 		   # system call code for Read Integer
+   		syscall			   # reads the value of B into $v0
+
+		and	$t0, $zero, $zero  # clear the register $t0
+		addi	$t0, $zero, 8	   # $t0 = 8 (Bound checking for B)
+
+			# check that B is in range of 1 to 21
+		
+		slt	$t2, $v0, $t0	   # $t2 = ($v0 < $t0) if (b < 8) $t2 = 1
+		beq	$t2, $zero, err	   # if $t2 = 0, go to error
+		blez	$v0, err	   # if ($v0 <= 0), go to error
+
+			# if B passed the test, continue
+
+   		move 	$t2, $v0 	   # move the value of $v0 into $t2
+
+
+			# printing the output message		
+
+   		li 	$v0, 4 		   # system call code for Print String
+   		la 	$a0, part1 	   # load address of part1 into $a0
+   		syscall
+
+
+			# printing out A
+
+   		li 	$v0, 1 		   # system call for Print Integer
+   		move 	$a0, $t1 	   # move the computed result into $a0
+   		syscall
+
+			# printing the comma		
+
+   		li 	$v0, 4 		   # system call code for Print String
+   		la 	$a0, comma 	   # load address of comma into $a0
+   		syscall
+
+
+			# printing out b
+
+   		li 	$v0, 1 		   # system call for Print Integer
+   		move 	$a0, $t2 	   # move the computed result into $a0
+   		syscall
+
+			# finish printing the output message	
+
+   		li 	$v0, 4 		   # system call code for Print String
+   		la 	$a0, part2 	   # load address of part2 msg into $a0
+   		syscall
+
+   		j 	down		   # jump to down
+
+down:
+   		li 	$t0, 1		   # loads 1 into $t0
+
+   		move 	$a0, $t1	   # move value of $t1 into $a0
+   		move 	$a1, $t2	   # move value of $t2 into $a0
+          
+   		jal 	recursive	   # jump recursive and save position to $ra
+
+			# print out the result
+	
+   		li 	$v0, 1 		   # system call for Print Integer
+   		move 	$a0, $t0 	   # move the computed result into $a0
+   		syscall
+  
+   		li 	$v0, 10 	   # terminate program run and
+   		syscall			   # return control to system
+err:
+		li 	$v0, 4 		   # system call code for Print String
+   		la 	$a0, error 	   # load address of result into $a0
+   		syscall
+
+		li 	$v0, 10 	   # terminate program run and
+   		syscall			   # return control to system
+#####################################################################
+#	Stack Frame description:
+#		Compute rexp(a,b)
+#
+#	Arguments received on stack:
+#		a (1-21) and b (1-7)
+#
+#	Returns:
+#		$t0 = rexp(a,b)
+#####################################################################
+recursive:
+   		mul 	$t0, $a0, $t0	   # multiply $a0 by $t0 and put result in $t0
+   		addi	$sp, $sp, -4	   # adjust stack pointer to accomodate stack frame
+   		sw 	$ra, 0($sp)	   # save $ra (return address)
+   		addi 	$a1, $a1, -1	   # subract $a1 by 1
+   		beq 	$a1, $zero, fin	   # branch to fin when $a1 = 0
+   		jal 	recursive	   # save position to $ra and loop again
+  
+
+fin:
+   		lw 	$ra, 0($sp)	   # load content of the return address into $ra
+   		addi 	$sp, $sp, 4	   # adjust stack pointer by 4 bits (deallocate)
+   		jr 	$ra		   # transfer control back to the caller

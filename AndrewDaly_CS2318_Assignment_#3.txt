@@ -1,0 +1,108 @@
+#	Program Name: Assignment #3
+#	Programmer: Andrew Daly
+#	Date last modified: 06/26/2020
+#	Functional Description:
+#	A program to print out N! using stack
+#####################################################################	
+#	C++ Pseudocode description of algorithm 
+#		(Coded by Thiyagraaj, slightly modified by Dan Tamir) :
+# # include<iostream>
+#   using namespace std;
+#   int factorial(int);
+#   int main() {
+# 	int counter, n, result;
+# 	cout << "Enter a number between 1 and 10:";
+# 	cin>>n;
+# 	result = factorial(n);
+# 	cout << n << " Factorial Value Is " << result;
+# 	return 0; }
+#
+# 	int factorial(int n) {
+# 		if (n > 1)
+#			return n * factorial(n-1);
+#		else
+#			return 1;
+#	}
+#####################################################################
+#	Main program
+#####################################################################
+		.data
+prompt: 	.asciiz 	"Enter a number between 1 and 10 : "
+result: 	.asciiz 	"Factorial Value is "
+		.text
+
+main:
+    		li	$v0, 4		# system call code for Print String
+    		la	$a0, prompt	# load address of prompt into $a0
+    		syscall
+
+    			# read N
+    		
+		li	$v0, 5		# system call code for Read Integer
+    		syscall			# reads the value of N into $v0
+
+    			# function call
+
+    		move	$a0, $v0	# move the value of $v0 into $a0
+    		jal	factorial       # jump factorial and save position to $ra
+    		move	$t0, $v0        # move the value of $v0 into $t0
+
+			# show prompt
+
+    		li	$v0, 4		# system call for Print String
+		la	$a0, result	# load address of message into $a0
+		syscall			# print the string
+
+    			# print the result
+
+		li	$v0, 1		# system call for Print Integer
+		move	$a0, $t0        # move the value of $t0 into $a0
+		syscall			# execute
+
+    			# return 0
+
+    		li	$v0, 10		# terminate program run and
+    		syscall			# return control to system
+
+#####################################################################
+#	Stack Frame description:
+#		Compute N! for non-negative N
+#
+#	Arguments received on stack:
+#		N
+#
+#	Returns:
+#		$v0 = N!
+#####################################################################
+		.text
+factorial:
+    # base case -- still in parent's stack segment
+    # adjust stack pointer to store return address and argument
+    		
+		addi	$sp, $sp, -8	# adjust stack pointer to accomodate stack frame
+
+			# save $s0 and $ra
+
+		sw	$s0, 4($sp)	# save $s0 (store argument)
+		sw	$ra, 0($sp)	# save $ra (return address)
+		bne     $a0, 0, else	# branch to else if $a0 = 0
+		addi    $v0, $zero, 1	# return 1 setting the counter to 1
+		j	fact_return	# jumps to fact_return
+
+else:
+    			# backup $a0
+
+    		move    $s0, $a0	# move the value of $a0 into $s0
+    		addi    $a0, $a0, -1	# x -= 1
+    		jal     factorial	# saves the return address before jumping to factorial
+
+    			# when we get here, we already have Fact(x-1) store in $v0
+
+    		multu	$s0, $v0	# return x*Fact(x-1) Unsigned Integer Multiplication 
+					# of $s0 and $v0
+    		mflo    $v0		# move from LO to $v0
+fact_return:
+    		lw      $s0, 4($sp)	# load content of the agrument into $s0
+    		lw      $ra, 0($sp)	# load content of the return address into $ra
+    		addi    $sp, $sp, 8	# adjust stack pointer by 8 bits
+    		jr      $ra		# transfer control back to the caller

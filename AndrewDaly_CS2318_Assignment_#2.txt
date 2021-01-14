@@ -1,0 +1,100 @@
+#	Program Name: Assignment 2
+#	Programmer: Andrew Daly
+#	Date last modified: 06/17/2020
+#	Functional Description:
+#	A program to generates a static initialized array with 10 
+#	integers and take in an integer input from the user, 1 to 
+#	find the minimum value and 2 to find the maximum value
+#####################################################################
+# C++ program description of algorithm:
+# 	int main() {   
+#	int array[10] = {4, 2, 8, 7, 3, 9, 1, 5, 6, 0}
+#	int input;
+#	int uniqueNum = array[0]
+#	cout << "Please enter 1 to find the minimum value, 2 to find
+#		the maximum value."
+#	cin >> input;
+#
+# 	if (input == 1) {
+#		for (int i = 0; i < 10; i++) {
+#			if (uniqueNum > array [i])
+#				uniqueNum = array [i];
+#		}
+#		cout << "The minimum value is : " << uniqueNum;
+#	}
+# 	if (input == 2) {
+#		for (int i = 0; i < 10; i++) {
+#			if (uniqueNum < array [i])
+#				uniqueNum = array [i];
+#		}
+#		cout << "The maximum value is : " << uniqueNum;
+#	}
+#	
+#	return 0;
+#	}
+#####################################################################
+		.data
+msg:		.asciiz		"Please enter 1 to find the minimum value, 2 to find the maximum value : "
+minmsg:		.asciiz		"The minimum value of the array is : "
+maxmsg:		.asciiz		"The maximum value of the array is : "
+array: 		.word		4, 2, 8, 7, 3, 9, 1, 5, 6, 0	# 10 integers in an array
+		.text
+main:
+		la	$s1, array	   # load address of array
+		li	$s2, 10		   # load number of elemnts in array
+		lw	$t0, 0($s1)	   # initialize uniqueNum to array[0]
+		addi	$t1, $zero, 0	   # initialize index i to 0
+
+		li	$v0, 4		   # system call code for Print String
+		la	$a0, msg	   # load address of message into $a0
+		syscall			   # print the string
+
+		addi	$v0, $zero, 5	   # system call code for Read Integer
+		syscall			   # read the inputted integer
+		
+		beq	$v0, 1, min	   # branches to min if input == 1
+		beq	$v0, 2, max	   # branches to max if input == 2
+
+min:		add	$t1, $t1, 1	   # increment index i by 1
+		beq	$t1, $s2, mindone  # if all elements examined, quit
+		add	$t2, $t1, $t1	   # compute 2i in $t2 = partial offset
+		add	$t2, $t2, $t2	   # compute 4i in since integer is 4 bytes $t2 = complete offset of ith element
+		add	$t2, $t2, $s1	   # insert address of array[i] in $t2
+		lw	$t3, 0($t2)	   # load value of array[i] into $t3
+		slt	$t4, $t3, $t0	   # uniqueNum > array[i] ?
+		beq	$t4, $zero, min    # if no, repeat with no change
+		addi	$t0, $t3, 0	   # if so, array[i] is the new minimum
+		j	min		   # change completed; now repeat
+
+max:		add	$t1, $t1, 1	   # increment index i by 1
+		beq	$t1, $s2, maxdone  # if all elements examined, quit
+		add	$t2, $t1, $t1	   # compute 2i in $t2 = partial offset
+		add	$t2, $t2, $t2	   # compute 4i in since integer is 4 bytes $t2 = complete offset of ith element
+		add	$t2, $t2, $s1	   # insert address of array[i] in $t2
+		lw	$t3, 0($t2)	   # load value of array[i] into $t3
+		slt	$t4, $t0, $t3	   # uniqueNum < array[i] ?
+		beq	$t4, $zero, max    # if no, repeat with no change
+		addi	$t0, $t3, 0	   # if so, array[i] is the new maximum
+		j	max		   # change completed; now repeat
+
+mindone:	li	$v0, 4		   # system call for Print String
+		la	$a0, minmsg	   # load address of minmsg into $a0
+		syscall			   # print the string
+
+		add	$a0, $zero, $t0	   # integer to display is in $t0, so this instruction same as move $a0, $t0
+		li	$v0, 1		   # system call code for Print Integer
+		syscall			   # print the integer
+
+		li	$v0, 10		   # terminate program run and
+		syscall			   # return control to system
+
+maxdone:	li	$v0, 4		   # system call for Print String
+		la	$a0, maxmsg	   # load address of maxnmsg into $a0
+		syscall			   # print the string
+
+		add	$a0, $zero, $t0	   # integer to display is in $t0, so this instruction same as move $a0, $t0
+		li	$v0, 1		   # system call code for Print Integer
+		syscall			   # print the integer
+
+		li	$v0, 10		   # terminate program run and
+		syscall			   # return control to system
